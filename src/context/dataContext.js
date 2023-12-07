@@ -18,10 +18,38 @@ export const DataProvider = ({children}) => {
 
   // Load JSON Data
   useEffect(() => {
-    fetch('quiz.json')
-      .then(res => res.json())
-      .then(data => setQuizs(data))
+    getQuiz();
   }, []);
+
+  function getQuiz() {
+    const url = 'https://opentdb.com/api.php?amount=10&category=18';
+    fetch(url)
+      .then(res => res.json())
+      .then(data => transformData(data.results))
+  }
+
+  function transformData(data) {
+    console.log(data);
+    let questions = [];
+    data.forEach(result => {
+      questions.push(createDataObject(result));
+    })
+    setQuizs(questions);
+  }
+
+  function createDataObject(data) {
+    const answer = [...data.incorrect_answers, data.correct_answer];
+    return {
+      question : data.question,
+      options: getRandomAnswer(answer),
+      answer: data.correct_answer
+    }
+  } 
+
+  function getRandomAnswer(answers) {
+    return answers.sort();
+    // return answers[Math.floor(Math.random() * answers.length)]
+  }
 
   // Set a Single Question
   useEffect(() => {
@@ -82,6 +110,7 @@ export const DataProvider = ({children}) => {
     wrongBtn?.classList.remove('bg-danger');
     const rightBtn = document.querySelector('button.bg-success');
     rightBtn?.classList.remove('bg-success');
+    getQuiz();
   }
     return (
         <DataContext.Provider value={{
